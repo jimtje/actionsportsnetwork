@@ -28,7 +28,7 @@ class ActionNetwork(object):
         """
         res = self.session.post(self.host + '/mobile/v1/user/login', auth=HTTPBasicAuth(self.username,
                                                                                         self.password), json={})
-        if 'token' in res.json().keys:
+        if 'token' in res.json().keys():
             self.session.headers.update({'authorization': res.json()['token']})
             res = self.myprofile().json()
             self.userid = res['id']
@@ -116,14 +116,17 @@ class ActionNetwork(object):
         else:
             return self._get('/mobile/v1/me/picks/analysis/' + analysis_id)
 
-    def scoreboard(self, league, bookids=None, seasontype=None, week=None):
+    def scoreboard(self, league, bookids=None, seasontype=None, week=None, date=None, division=None):
         """
 
         :param league:
-        valid choices: today, all, nfl, mlb, nhl, mine, pga, soccer, ncaaf, ncaab, epl
+        valid choices: today, all, nfl, mlb, nhl, mine, pga, soccer, ncaaf, ncaab, epl, bundesliga, champions,
+        laliga, ligue1, seriea, mls
         :param bookids:
         :param seasonType:
         :param week:
+        :param date:
+        :param division: choices from TOP25, D1, AAC, WCC, WAC, SWAC, SUNBELT, SUMMIT, SOUTHLAND, AMERICANEAST, SEC, etc
         :return:
         """
         params = {}
@@ -135,6 +138,13 @@ class ActionNetwork(object):
 
         if week is not None:
             params['week'] = week
+
+        if date is not None:
+            params['date'] = date
+
+        if division is not None:
+            params['division'] = division
+
         return self._get('/mobile/v1/scoreboard/' + league, params={'bookIds': bookids, 'seasonType': seasontype,
                                                                     'week': week})
 
@@ -191,9 +201,9 @@ class ActionNetwork(object):
         :return:
         """
 
-        pickdict = {"league_id":league_id,"game_id":game_id,"side_id":side_id,"meta":{"is_synced":False,"tease":0},
-                    "type":type,
-                    "value":value,"odds":odds,"units":units,"units_type":units_type,"period":period}
+        pickdict = {"league_id": league_id, "game_id": game_id, "side_id": side_id, "meta": {"is_synced": False,
+                                                                                             "tease": 0},
+                    "type": type, "value": value, "odds": odds, "units": units, "units_type": units_type, "period": period}
         return self._post('/mobile/v1/me/picks', data=pickdict)
 
 
