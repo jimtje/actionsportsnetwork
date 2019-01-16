@@ -1,5 +1,5 @@
 import logging
-
+from .client import *
 
 __version__ = "0.0.1"
 
@@ -13,4 +13,4 @@ except ImportError:
 
 logging.getLogger(__name__).addHandler(NullHandler())
 
-__all__ = ['client', 'exceptions']
+__all__ = ['client']
