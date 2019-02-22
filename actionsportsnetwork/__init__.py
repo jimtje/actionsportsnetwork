@@ -1,7 +1,14 @@
 import logging
 from .client import *
+import actionsportsnetwork.version
 
-__version__ = "0.0.1"
+VERSION = actionsportsnetwork.version.__lib_version__
+
+APP_VERSION = actionsportsnetwork.version.__action_app_version__
+
+"""
+Tracks with app (ios)
+"""
 
 
 try:  # Python 2.7+

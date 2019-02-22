@@ -14,7 +14,7 @@ class ActionNetwork(object):
         self.host = 'https://api-prod.sprtactn.co'
         self.username = username
         self.password = password
-        self.headers = {'User-Agent': 'Action-AppStore/13471 CFNetwork/894 Darwin/17.4.0'}
+        self.headers = {'User-Agent': 'Action-AppStore/13877 CFNetwork/894 Darwin/17.4.0'}
         self.session = requests.Session()
         self.session.headers.update(self.headers)
         self._auth()
@@ -24,7 +24,7 @@ class ActionNetwork(object):
     def _auth(self):
         """
 
-        :return:
+        :return: Sets auth token in session header
         """
         res = self.session.post(self.host + '/mobile/v1/user/login', auth=HTTPBasicAuth(self.username,
                                                                                         self.password), json={})
@@ -95,8 +95,6 @@ class ActionNetwork(object):
         if league is not None:
             params['league'] = league
 
-
-
         return self._get('/mobile/v1/me/picks', params=params)
 
     def stats(self):
@@ -147,18 +145,6 @@ class ActionNetwork(object):
 
         return self._get('/mobile/v1/scoreboard/' + league, params={'bookIds': bookids, 'seasonType': seasontype,
                                                                     'week': week})
-
-    def betsync(self, lastseen=None):
-        """
-
-        :param lastseen:
-        :return:
-        """
-        if lastseen is not None:
-            params = {'last_seen':lastseen}
-        else:
-            params = None
-        return self._get('/mobile/v1/me/betsync/summary', params=params)
 
     def oddshistory(self, gameid, bookids=None):
         """
