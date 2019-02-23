@@ -1,20 +1,66 @@
+"""Client module"""
+
 import requests
 from requests.auth import HTTPBasicAuth
 from .exceptions import *
+from actionsportsnetwork.session import ActionSession
+import urllib.parse
+
+
+class ActionClient(object):
+    def __init__(
+        self,
+        host="https://api-prod.sprtactn.co",
+        version="v1",
+        username=None,
+        password=None,
+    ):
+        """
+
+        :type host: string
+        """
+        self.version = version
+        self.host = host
+        self.endpoint = "mobile"
+        self.session = ActionSession()
+        if username and password:
+            self.session.init_auth_credentials(username, password)
+
+    @property
+    def url(self):
+        """return"""
+        return urllib.parse.urljoin(self.host, self.endpoint, self.version)
+
+    def _get(self, urlpath, params=None):
+
+        try:
+            url = urllib.parse.urljoin(self.url, urlpath)
+            return self.session.get(url, params=params)
+        except Exception as e:
+            raise NotFoundError(e)
+
+    def _post(self, urlpath, params=None, data=None):
+
+        try:
+            url = urllib.parse.urljoin(self.url, urlpath)
+            return self.session.post(url, params=params, json=data)
+        except Exception as e:
+            raise NotFoundError(e)
 
 
 class ActionNetwork(object):
-
     def __init__(self, username, password):
         """
 
         :param username:
         :param password:
         """
-        self.host = 'https://api-prod.sprtactn.co'
+        self.host = "https://api-prod.sprtactn.co"
         self.username = username
         self.password = password
-        self.headers = {'User-Agent': 'Action-AppStore/13471 CFNetwork/894 Darwin/17.4.0'}
+        self.headers = {
+            "User-Agent": "Action-AppStore/13471 CFNetwork/894 Darwin/17.4.0"
+        }
         self.session = requests.Session()
         self.session.headers.update(self.headers)
         self._auth()
@@ -26,13 +72,16 @@ class ActionNetwork(object):
 
         :return:
         """
-        res = self.session.post(self.host + '/mobile/v1/user/login', auth=HTTPBasicAuth(self.username,
-                                                                                        self.password), json={})
-        if 'token' in res.json().keys():
-            self.session.headers.update({'authorization': res.json()['token']})
+        res = self.session.post(
+            self.host + "/mobile/v1/user/login",
+            auth=HTTPBasicAuth(self.username, self.password),
+            json={},
+        )
+        if "token" in res.json().keys():
+            self.session.headers.update({"authorization": res.json()["token"]})
             res = self.myprofile().json()
-            self.userid = res['id']
-            if res['is_pro']:
+            self.userid = res["id"]
+            if res["is_pro"]:
                 self.pro = True
         else:
             raise InvalidCredentials
@@ -69,7 +118,7 @@ class ActionNetwork(object):
         Overview of profile
 
         """
-        return self._get('/mobile/v1/me')
+        return self._get("/mobile/v1/me")
 
     def inbox(self):
         """
@@ -77,7 +126,7 @@ class ActionNetwork(object):
 
         :return:
         """
-        return self._get('/mobile/v1/me/inbox')
+        return self._get("/mobile/v1/me/inbox")
 
     def picks(self, date=None, future=False, league=None):
         """
@@ -89,22 +138,20 @@ class ActionNetwork(object):
 
         params = {}
         if date is not None:
-            params['date'] = date
+            params["date"] = date
         if future:
-            params['future'] = True
+            params["future"] = True
         if league is not None:
-            params['league'] = league
+            params["league"] = league
 
-
-
-        return self._get('/mobile/v1/me/picks', params=params)
+        return self._get("/mobile/v1/me/picks", params=params)
 
     def stats(self):
         """
         Pick stats
         :return:
         """
-        return self._get('/mobile/v1/me/picks/stats')
+        return self._get("/mobile/v1/me/picks/stats")
 
     def analysis(self, analysis_id=None):
         """
@@ -112,11 +159,13 @@ class ActionNetwork(object):
         :return:
         """
         if analysis_id is None:
-            return self._get('/mobile/v1/me/picks/analysis')
+            return self._get("/mobile/v1/me/picks/analysis")
         else:
-            return self._get('/mobile/v1/me/picks/analysis/' + analysis_id)
+            return self._get("/mobile/v1/me/picks/analysis/" + analysis_id)
 
-    def scoreboard(self, league, bookids=None, seasontype=None, week=None, date=None, division=None):
+    def scoreboard(
+        self, league, bookids=None, seasontype=None, week=None, date=None, division=None
+    ):
         """
 
         :param league:
@@ -131,22 +180,24 @@ class ActionNetwork(object):
         """
         params = {}
         if bookids is not None:
-            params['bookIds'] = bookids
+            params["bookIds"] = bookids
 
         if seasontype is not None:
-            params['seasonType'] = seasontype
+            params["seasonType"] = seasontype
 
         if week is not None:
-            params['week'] = week
+            params["week"] = week
 
         if date is not None:
-            params['date'] = date
+            params["date"] = date
 
         if division is not None:
-            params['division'] = division
+            params["division"] = division
 
-        return self._get('/mobile/v1/scoreboard/' + league, params={'bookIds': bookids, 'seasonType': seasontype,
-                                                                    'week': week})
+        return self._get(
+            "/mobile/v1/scoreboard/" + league,
+            params={"bookIds": bookids, "seasonType": seasontype, "week": week},
+        )
 
     def betsync(self, lastseen=None):
         """
@@ -155,10 +206,10 @@ class ActionNetwork(object):
         :return:
         """
         if lastseen is not None:
-            params = {'last_seen':lastseen}
+            params = {"last_seen": lastseen}
         else:
             params = None
-        return self._get('/mobile/v1/me/betsync/summary', params=params)
+        return self._get("/mobile/v1/me/betsync/summary", params=params)
 
     def oddshistory(self, gameid, bookids=None):
         """
@@ -169,8 +220,8 @@ class ActionNetwork(object):
         """
         params = {}
         if bookids is not None:
-            params['bookIds'] = bookids
-        return self._get('/mobile/v1/game/' + gameid + '/oddshistory', params=params)
+            params["bookIds"] = bookids
+        return self._get("/mobile/v1/game/" + gameid + "/oddshistory", params=params)
 
     def game(self, gameid, bookids=None):
         """
@@ -182,11 +233,22 @@ class ActionNetwork(object):
         """
         params = {}
         if bookids is not None:
-            params['bookIds'] = bookids
+            params["bookIds"] = bookids
 
-        return self._get('/mobile/v1/game/' + gameid, params=params)
+        return self._get("/mobile/v1/game/" + gameid, params=params)
 
-    def add_pick(self, league_id, game_id, side_id, type, value, odds, units, units_type="money", period=game):
+    def add_pick(
+        self,
+        league_id,
+        game_id,
+        side_id,
+        type,
+        value,
+        odds,
+        units,
+        units_type="money",
+        period=game,
+    ):
         """
 
         :param league_id:
@@ -201,19 +263,16 @@ class ActionNetwork(object):
         :return:
         """
 
-        pickdict = {"league_id": league_id, "game_id": game_id, "side_id": side_id, "meta": {"is_synced": False,
-                                                                                             "tease": 0},
-                    "type": type, "value": value, "odds": odds, "units": units, "units_type": units_type, "period": period}
-        return self._post('/mobile/v1/me/picks', data=pickdict)
-
-
-
-
-
-
-
-
-
-
-
-
+        pickdict = {
+            "league_id": league_id,
+            "game_id": game_id,
+            "side_id": side_id,
+            "meta": {"is_synced": False, "tease": 0},
+            "type": type,
+            "value": value,
+            "odds": odds,
+            "units": units,
+            "units_type": units_type,
+            "period": period,
+        }
+        return self._post("/mobile/v1/me/picks", data=pickdict)
